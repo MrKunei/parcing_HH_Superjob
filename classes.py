@@ -1,15 +1,11 @@
 from abc import ABC, abstractmethod
+from bs4 import BeautifulSoup as BS
 import requests
 import re
 
+
 class Engine(ABC):
-    @abstractmethod
-    def get_request(self):
-        pass
-
-
-class HH(Engine):
-    def __init__(self, text, num_page=16):
+    def __init__(self, text, num_page):
         self._text = text
         self._num_page = num_page
 
@@ -17,28 +13,45 @@ class HH(Engine):
     def text(self):
         return self._text
 
+    @property
     def num_page(self):
-        return self._num_page
+        return
+
+    @abstractmethod
+    def get_request(self):
+        pass
+
+
+class HH(Engine):
 
     def get_request(self):
-        vacancy_hh = []
-        for num in range(self._num_page):
-            par = {"text": self.text, 'per_page': '50', 'page': self._num_page}
-            response = requests.get(f"https://api.hh.ru/vacancies", params=par)
+        par = {"text": self.text, 'per_page': '50', 'page': self.num_page}
+        response = requests.get(f"https://api.hh.ru/vacancies", params=par)
+        return response.json()['items']
 
-            for i in response.json()['items']:
-                vacancy_hh.extend([{"title": i['name'],
-                                       "salary": i['salary'],
-                                       "link": i['alternate_url'],
-                                       "description": i['snippet']['responsibility']}])
-        return vacancy_hh
 
 
 class Superjob(Engine):
 
     def get_request(self):
-        with open("https://russia.superjob.ru/vacancy/search/?keywords=python") as f:
-            contents = f.read()
+        result_list = []
+        url =  f"https://russia.superjob.ru/vacancy/search/?keywords={self.text}&page={self.num_page}"
+        r = requests.get(url)
+        soup = BS(r.text, "html.parser")
+
+        names = soup.find_all('span', class_='_9fIP1 _249GZ _1jb_5 QLdOc')
+        about = soup.find_all('span', class_='_1Nj4W _249GZ _1jb_5 _1dIgi _3qTky')
+        salary = soup.find_all('span', class_='_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi')
+
+        for i in range(len(names)):
+            result_dict = {
+                'name': names[i].text,
+                'urls': 'russia.superjob.ru' + names[i].a['href'],
+                'salary': salary[i].text,
+                'description': about[i].text
+            }
+            result_list.append(result_dict)
+        return result_list
 
 class Vacancy():
 
@@ -58,18 +71,18 @@ class Vacancy():
     @property
     def salary(self):
         if self._salary:
-            return f" {self._salary['from']} - {self._salary['to']}"
+            return f"{self._salary['from']} - {self._salary['to']}"
         else:
             return "не указано"
     @property
     def descriptoin(self):
-        res = re.compile("<highlighttext>|<\/highlighttext>")
-        description = re.sub(res, "", self._description)
-        return description
+        # res = re.compile("<highlighttext>|<\/highlighttext>")
+        # self._description = re.sub(res, "", self._description)
+        return self._description
 
     def __repr__(self):
         return f"Вакансия: {self.title}.\n" \
-               f"Уровень дохода: от{self.salary}.\n" \
+               f"Уровень дохода: {self.salary}.\n" \
                f"Ссылка: {self.urls}.\n" \
                f"Описание: {self.descriptoin}.\n"
 
