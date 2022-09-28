@@ -21,7 +21,7 @@ def read_json_file(text: str) -> list:
 
 def update_json_file(text: str, vacancy: list) -> None:
     """
-    Записывает файл и добавляет новые данные.
+    Записывает файл с новыми данными.
     """
     with open(f"{text}.json", encoding="utf-8") as file:
         data = json.load(file)
