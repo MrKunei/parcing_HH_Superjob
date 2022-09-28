@@ -15,7 +15,7 @@ class Engine(ABC):
 
     @property
     def num_page(self):
-        return
+        return self._num_page
 
     @abstractmethod
     def get_request(self):
@@ -24,45 +24,78 @@ class Engine(ABC):
 
 class HH(Engine):
 
-    def get_request(self):
-        par = {"text": self.text, 'per_page': '50', 'page': self.num_page}
+    def get_request(self) -> list:
+        par = {"text": self.text, 'area': '113', 'per_page': '50', 'page': self.num_page}
         response = requests.get(f"https://api.hh.ru/vacancies", params=par)
         res = response.json()['items']
-        vacancies =[]
+
+        vacancies = []
         for item in res:
+            description = f"{item['snippet']['responsibility']} " \
+                          f"{item['snippet']['requirement']}"
             vacancy_info = {
                 "title": item['name'],
                 "url": item['alternate_url'],
-                "salary": item['salary'],
-                "description": item['snippet']['responsibility']
+                "salary": self.formate_salary(item['salary']),
+                "description": self.formate_description(description)
             }
             vacancies.append(vacancy_info)
         return vacancies
 
+    def formate_salary(self, salary) ->list:
+        if salary is None:
+            return [0, '']
+        if salary['from'] is None:
+            return [0, '']
+        if salary['currency'] == "USD":
+            return [salary['from']*60, 'RUR']
 
+        return [salary['from'], salary['currency']]
+
+    def formate_description(self, description):
+        res = re.compile("<highlighttext>|<\/highlighttext>")
+        return re.sub(res, "", description)
 
 
 class Superjob(Engine):
 
-    def get_request(self):
-        result_list = []
-        url =  f"https://russia.superjob.ru/vacancy/search/?keywords={self.text}&page={self.num_page}"
-        r = requests.get(url)
+    def get_request(self) -> list:
+
+        par = {'keywords': self.text, 'page': self.num_page }
+        url =  f"https://russia.superjob.ru/vacancy/search/"
+        r = requests.get(url, params=par)
         soup = BS(r.text, "html.parser")
 
         names = soup.find_all('span', class_='_9fIP1 _249GZ _1jb_5 QLdOc')
         about = soup.find_all('span', class_='_1Nj4W _249GZ _1jb_5 _1dIgi _3qTky')
         salary = soup.find_all('span', class_='_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi')
 
+        result_list = []
         for i in range(len(names)):
             result_dict = {
-                'name': names[i].text,
+                'title': names[i].text,
                 'url': 'russia.superjob.ru' + names[i].a['href'],
-                'salary': salary[i].text,
+                'salary': self.formate_salary(salary[i].text),
                 'description': about[i].text
             }
+            if result_dict is None:
+                break
             result_list.append(result_dict)
-        return result_list
+            return result_list
+
+    def formate_salary(self, salary) -> list:
+
+        res = re.compile(" ")
+        salary = re.sub(res, "",  salary)
+        if salary == "По договоренности" or "По говорённости":
+            return [0, '']
+        else:
+            salary = salary.replace("от", "")
+            salary = salary.replace("руб.", "")
+            salary = salary.replace("до", "")
+            return [int(salary), 'RUR']
+
+
 
 class Vacancy():
 
@@ -73,25 +106,26 @@ class Vacancy():
         self._description = description
 
     @property
-    def title(self):
+    def title(self) -> str:
         return self._title
 
     @property
-    def urls(self):
+    def urls(self) -> str:
         return self._urls
+
     @property
-    def salary(self):
-        if self._salary:
-            return f"{self._salary['from']} - {self._salary['to']}"
+    def salary(self) -> str:
+        if self._salary == [0, '']:
+            return "По договорённости"
         else:
-            return "не указано"
+            return f"{self._salary[0]} {self._salary[1]}"
+
+
     @property
-    def descriptoin(self):
-        # res = re.compile("<highlighttext>|<\/highlighttext>")
-        # self._description = re.sub(res, "", self._description)
+    def descriptoin(self) -> str:
         return self._description
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Вакансия: {self.title}.\n" \
                f"Уровень дохода: {self.salary}.\n" \
                f"Ссылка: {self.urls}.\n" \
