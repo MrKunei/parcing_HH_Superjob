@@ -98,15 +98,17 @@ class Superjob(Engine):
         """
         Форматирует данные по з.п. в список
         """
-        res = re.compile(" ")
+        res = re.compile("от | | до|до |руб.")
         salary = re.sub(res, "",  salary)
-        if salary == "По договоренности" or "По говорённости":
+
+        if "По договорённости" in salary:
             return [0, '']
+        elif "—" in salary:
+            salary = salary.split("—")
+            return [int(salary[0]), 'RUR']
         else:
-            salary = salary.replace("от", "")
-            salary = salary.replace("руб.", "")
-            salary = salary.replace("до", "")
             return [int(salary), 'RUR']
+
 
 
 class Vacancy():
