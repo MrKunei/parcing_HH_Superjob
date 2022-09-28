@@ -5,6 +5,11 @@ def cleaning_json_file(text: str):
         data = []
         json.dump(data, file, ensure_ascii=False, indent=2)
 
+def read_json_file(text: str):
+    with open(f"{text}.json", encoding="utf-8") as file:
+        data = json.load(file)
+        return data
+
 def update_json_file(text: str, vacancy: list):
     with open(f"{text}.json", encoding="utf-8") as file:
         data = json.load(file)
@@ -14,21 +19,12 @@ def update_json_file(text: str, vacancy: list):
 
 
 def parcing_page(text: str, num_page: int, website):
-    vacancy_list = []
+
     for num in range(num_page):
         site = website(text, num)
         vacancies = site.get_request()
-
-        for item in vacancies:
-            vacancy_info = {
-               "title": item['name'],
-               "url": item['alternate_url'],
-               "salary": item['salary'],
-               "description": item['snippet']['responsibility']
-                }
-            vacancy_list.append(vacancy_info)
-        print(f"Прошел парсинг {num+1} страницы")
-    update_json_file(text, vacancy_list)
+        print(f"Парсинг {num+1} страницы")
+        update_json_file(text, vacancies)
 
 
 

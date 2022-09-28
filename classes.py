@@ -27,7 +27,18 @@ class HH(Engine):
     def get_request(self):
         par = {"text": self.text, 'per_page': '50', 'page': self.num_page}
         response = requests.get(f"https://api.hh.ru/vacancies", params=par)
-        return response.json()['items']
+        res = response.json()['items']
+        vacancies =[]
+        for item in res:
+            vacancy_info = {
+                "title": item['name'],
+                "url": item['alternate_url'],
+                "salary": item['salary'],
+                "description": item['snippet']['responsibility']
+            }
+            vacancies.append(vacancy_info)
+        return vacancies
+
 
 
 
@@ -46,7 +57,7 @@ class Superjob(Engine):
         for i in range(len(names)):
             result_dict = {
                 'name': names[i].text,
-                'urls': 'russia.superjob.ru' + names[i].a['href'],
+                'url': 'russia.superjob.ru' + names[i].a['href'],
                 'salary': salary[i].text,
                 'description': about[i].text
             }
