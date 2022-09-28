@@ -5,7 +5,7 @@ import re
 
 
 class Engine(ABC):
-    def __init__(self, text, num_page):
+    def __init__(self, text: str, num_page: int):
         self._text = text
         self._num_page = num_page
 
@@ -25,11 +25,14 @@ class Engine(ABC):
 class HH(Engine):
 
     def get_request(self) -> list:
+        """
+        Получает данные с API и возвращает нужные поля.
+        """
         par = {"text": self.text, 'area': '113', 'per_page': '50', 'page': self.num_page}
         response = requests.get(f"https://api.hh.ru/vacancies", params=par)
         res = response.json()['items']
 
-        vacancies = []
+        vacancies: list = []
         for item in res:
             description = f"{item['snippet']['responsibility']} " \
                           f"{item['snippet']['requirement']}"
@@ -42,7 +45,10 @@ class HH(Engine):
             vacancies.append(vacancy_info)
         return vacancies
 
-    def formate_salary(self, salary) ->list:
+    def formate_salary(self, salary: dict) ->list:
+        """
+        Форматирует данные по з.п. в список | переводит USD~RUR
+        """
         if salary is None:
             return [0, '']
         if salary['from'] is None:
@@ -52,7 +58,10 @@ class HH(Engine):
 
         return [salary['from'], salary['currency']]
 
-    def formate_description(self, description):
+    def formate_description(self, description: str):
+        """
+        Форматирует описание
+        """
         res = re.compile("<highlighttext>|<\/highlighttext>")
         return re.sub(res, "", description)
 
@@ -60,7 +69,9 @@ class HH(Engine):
 class Superjob(Engine):
 
     def get_request(self) -> list:
-
+        """
+        Парсит страницу через BS
+        """
         par = {'keywords': self.text, 'page': self.num_page }
         url =  f"https://russia.superjob.ru/vacancy/search/"
         r = requests.get(url, params=par)
@@ -70,7 +81,7 @@ class Superjob(Engine):
         about = soup.find_all('span', class_='_1Nj4W _249GZ _1jb_5 _1dIgi _3qTky')
         salary = soup.find_all('span', class_='_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi')
 
-        result_list = []
+        result_list: list = []
         for i in range(len(names)):
             result_dict = {
                 'title': names[i].text,
@@ -81,10 +92,12 @@ class Superjob(Engine):
             if result_dict is None:
                 break
             result_list.append(result_dict)
-            return result_list
+        return result_list
 
-    def formate_salary(self, salary) -> list:
-
+    def formate_salary(self, salary: str) -> list:
+        """
+        Форматирует данные по з.п. в список
+        """
         res = re.compile(" ")
         salary = re.sub(res, "",  salary)
         if salary == "По договоренности" or "По говорённости":
@@ -96,10 +109,9 @@ class Superjob(Engine):
             return [int(salary), 'RUR']
 
 
-
 class Vacancy():
 
-    def __init__(self, title, urls, salary, description):
+    def __init__(self, title: str, urls: str, salary: list, description: str):
         self._title = title
         self._urls = urls
         self._salary = salary
@@ -119,7 +131,6 @@ class Vacancy():
             return "По договорённости"
         else:
             return f"{self._salary[0]} {self._salary[1]}"
-
 
     @property
     def descriptoin(self) -> str:
