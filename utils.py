@@ -30,16 +30,18 @@ def update_json_file(text: str, vacancy: list) -> None:
             json.dump(data, outfile, ensure_ascii=False, indent=2)
 
 
-def parcing_page(text: str, num_page: int, website: Any) -> None:
+def parcing_page(text: str, website: Any) -> None:
     """
     Парсит каждую страницу на нужном сайте и записывает в файл.
     """
-    for num in range(1, num_page+1):
+    for num in range(1, 10):
         site = website(text, num)
         vacancies = site.get_request()
-        if vacancies is not None:
-            print(f"Парсинг {num} страницы")
-            update_json_file(text, vacancies)
+        if not vacancies:
+            break
+
+        print(f"Парсинг {num} страницы")
+        update_json_file(text, vacancies)
 
 
 

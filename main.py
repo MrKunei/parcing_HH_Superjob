@@ -9,10 +9,10 @@ def main():
     cleaning_json_file(job)
 
     print("Начинаем парсить сайт HH")
-    parcing_page(job, 17, HH)
+    parcing_page(job, HH)
 
     print("Начинаем парсить сайт Superjob")
-    parcing_page(job, 3, Superjob)
+    parcing_page(job, Superjob)
 
     data = read_json_file(job)
     print(f"Сбор данных закончен!\nВсего было найдено {len(data)} вакансий.\n")

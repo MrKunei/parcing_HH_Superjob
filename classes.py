@@ -28,7 +28,7 @@ class HH(Engine):
         """
         Получает данные с API и возвращает нужные поля.
         """
-        par = {"text": self.text, 'area': '113', 'per_page': '50', 'page': self.num_page}
+        par = {"text": self.text, 'area': '113', 'per_page': '100', 'page': self.num_page}
         response = requests.get(f"https://api.hh.ru/vacancies", params=par)
         res = response.json()['items']
 
