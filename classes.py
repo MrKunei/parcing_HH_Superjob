@@ -32,7 +32,7 @@ class HH(Engine):
         response = requests.get(f"https://api.hh.ru/vacancies", params=par)
         res = response.json()['items']
 
-        vacancies: list = []
+        vacancies = []
         for item in res:
             description = f"{item['snippet']['responsibility']} " \
                           f"{item['snippet']['requirement']}"
@@ -89,6 +89,8 @@ class Superjob(Engine):
                 'salary': self.formate_salary(salary[i].text),
                 'description': about[i].text
             }
+
+
             if result_dict is None:
                 break
             result_list.append(result_dict)

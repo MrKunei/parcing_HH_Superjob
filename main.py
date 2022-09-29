@@ -4,7 +4,7 @@ from random import choices
 
 def main():
     print("Привет! Найдем подходящую вакансию вместе на сайтах HH и Superjob!")
-    job = input("Введите название профессии:\n>>> ")
+    job = input("Введите название профессии:\n>>> ").rstrip().lower()
     print("Отлично, начинаем поиск. Можем вместе наблюдать как обрабатываются данные")
     cleaning_json_file(job)
 
