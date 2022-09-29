@@ -7,12 +7,16 @@ def main():
     job = input("Введите название профессии:\n>>> ")
     print("Отлично, начинаем поиск. Можем вместе наблюдать как обрабатываются данные")
     cleaning_json_file(job)
+
     print("Начинаем парсить сайт HH")
     parcing_page(job, 17, HH)
+
     print("Начинаем парсить сайт Superjob")
     parcing_page(job, 3, Superjob)
+
     data = read_json_file(job)
     print(f"Сбор данных закончен!\nВсего было найдено {len(data)} вакансий.\n")
+
     while True:
         print("Выберите № дальнейшего действия:\n"
               "1. Вывести топ 10 вакансий с самыми большими зарплатами.\n"
@@ -21,8 +25,7 @@ def main():
               "4. Выйти.")
         user = int(input(">>> "))
         if user == 1:
-            list = sorted(data, key=lambda v: v['salary'][0], reverse=True)
-            res = list[:10]
+            res = sorted(data, key=lambda v: v['salary'][0], reverse=True)[:10]
             for r in res:
                 vacancy = Vacancy(r['title'], r['url'], r['salary'], r['description'])
                 print(vacancy)

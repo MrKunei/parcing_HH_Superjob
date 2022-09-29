@@ -78,10 +78,10 @@ class Superjob(Engine):
         soup = BS(r.text, "html.parser")
 
         names = soup.find_all('span', class_='_9fIP1 _249GZ _1jb_5 QLdOc')
-        about = soup.find_all('span', class_='_1Nj4W _249GZ _1jb_5 _1dIgi _3qTky')
+        about = soup.find_all('div', class_='_2d_Of _2J-3z _3B5DQ')
         salary = soup.find_all('span', class_='_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi')
 
-        result_list: list = []
+        result_list = []
         for i in range(len(names)):
             result_dict = {
                 'title': names[i].text,
