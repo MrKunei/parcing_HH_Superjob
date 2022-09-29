@@ -85,7 +85,7 @@ class Superjob(Engine):
         for i in range(len(names)):
             result_dict = {
                 'title': names[i].text,
-                'url': 'russia.superjob.ru' + names[i].a['href'],
+                'url': ' https://russia.superjob.ru' + names[i].a['href'],
                 'salary': self.formate_salary(salary[i].text),
                 'description': about[i].text
             }
